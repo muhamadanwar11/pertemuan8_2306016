@@ -1,28 +1,25 @@
 class PhotoModel {
-  final String id;
-  final String author;
-  final int width;
-  final int height;
-  final String url;
-  final String downloadUrl;
+  String id;
+  String author;
+  String downloadUrl;
+  int width;
+  int height;
 
   PhotoModel({
     required this.id,
     required this.author,
+    required this.downloadUrl,
     required this.width,
     required this.height,
-    required this.url,
-    required this.downloadUrl,
   });
 
   factory PhotoModel.fromJson(Map<String, dynamic> json) {
     return PhotoModel(
       id: json['id'],
       author: json['author'],
+      downloadUrl: json['download_url'],
       width: json['width'],
       height: json['height'],
-      url: json['url'],
-      downloadUrl: json['download_url'],
     );
   }
 }

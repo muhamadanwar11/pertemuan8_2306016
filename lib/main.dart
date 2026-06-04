@@ -5,86 +5,88 @@ import 'models/photo_model.dart';
 import 'services/photo_service.dart';
 
 void main() {
-  runApp(
-    MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: const MainPage(),
-      title: "Pertemuan 08",
-      theme: ThemeData(
-        primarySwatch: Colors.green,
-        scaffoldBackgroundColor: Colors.grey[100],
-      ),
-    ),
-  );
+  runApp(MyApp());
 }
 
-// MAIN PAGE WITH BOTTOM NAVIGATION
-class MainPage extends StatefulWidget {
-  const MainPage({super.key});
-
+class MyApp extends StatelessWidget {
   @override
-  State<MainPage> createState() => _MainPageState();
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: MainNavigation(),
+    );
+  }
 }
 
-class _MainPageState extends State<MainPage> {
-  int _selectedIndex = 0;
+class MainNavigation extends StatefulWidget {
+  @override
+  State<MainNavigation> createState() => _MainNavigationState();
+}
 
-  final List<Widget> _pages = [
-    const PostPage(),
-    const PhotosPage(),
+class _MainNavigationState extends State<MainNavigation> {
+  int currentIndex = 0;
+
+  final List<Widget> pages = [
+    PostPage(),
+    GalleryPage(),
   ];
 
-  void _onItemTapped(int index) {
+  void onTap(int index) {
     setState(() {
-      _selectedIndex = index;
+      currentIndex = index;
     });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _pages[_selectedIndex],
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
-              blurRadius: 10,
-              offset: const Offset(0, -5),
-            ),
-          ],
-        ),
-        child: BottomNavigationBar(
-          currentIndex: _selectedIndex,
-          onTap: _onItemTapped,
-          selectedItemColor: const Color.fromARGB(255, 83, 206, 12),
-          unselectedItemColor: Colors.grey,
-          showUnselectedLabels: true,
-          type: BottomNavigationBarType.fixed,
-          backgroundColor: Colors.white,
-          elevation: 0,
-          items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.article),
-              activeIcon: Icon(Icons.article, size: 28),
-              label: 'Posts',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.photo_library),
-              activeIcon: Icon(Icons.photo_library, size: 28),
-              label: 'Photos',
-            ),
-          ],
+      extendBody: true,
+      body: pages[currentIndex],
+
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Container(
+          height: 70,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(30),
+            boxShadow: [
+              BoxShadow(
+                blurRadius: 20,
+                color: Colors.black.withOpacity(0.2),
+              )
+            ],
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              IconButton(
+                icon: Icon(
+                  Icons.home,
+                  color: currentIndex == 0
+                      ? Colors.blue
+                      : Colors.grey,
+                ),
+                onPressed: () => onTap(0),
+              ),
+              IconButton(
+                icon: Icon(
+                  Icons.image,
+                  color: currentIndex == 1
+                      ? Colors.blue
+                      : Colors.grey,
+                ),
+                onPressed: () => onTap(1),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 }
 
-// HALAMAN POST
 class PostPage extends StatefulWidget {
-  const PostPage({super.key});
-
   @override
   State<PostPage> createState() => _PostPageState();
 }
@@ -102,82 +104,62 @@ class _PostPageState extends State<PostPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          "Daftar Postingan", 
-          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)
-        ),
-        backgroundColor: const Color.fromARGB(255, 83, 206, 12),
-        elevation: 0,
-        centerTitle: true,
+        title: Text("Daftar Post"),
+        backgroundColor: Colors.pinkAccent,
       ),
       body: FutureBuilder<List<PostModel>>(
         future: futurePosts,
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('Tidak ada data'));
-          }
+          if (snapshot.hasData) {
+            final posts = snapshot.data!;
 
-          final posts = snapshot.data!;
-          return ListView.builder(
-            itemCount: posts.length,
-            padding: const EdgeInsets.all(12),
-            itemBuilder: (context, index) {
-              final post = posts[index];
+            return ListView.builder(
+              padding: EdgeInsets.all(12), // 🔥 padding luar
+              itemCount: posts.length,
+              itemBuilder: (context, index) {
+                final post = posts[index];
 
-              return Card(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(15.0),
-                ),
-                margin: const EdgeInsets.only(bottom: 12),
-                elevation: 4,
-                shadowColor: Colors.black.withValues(alpha: 0.2),
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        post.title,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      Text(
-                        post.body, 
-                        style: TextStyle(
-                          fontSize: 15,
-                          color: Colors.grey[700],
-                          height: 1.5,
-                        ),
-                      ),
-                    ],
+                return Card(
+                  margin: EdgeInsets.only(bottom: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                ),
-              );
-            },
-          );
+                  child: Padding(
+                    padding: EdgeInsets.all(12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          post.title,
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        SizedBox(height: 8),
+                        Text(post.body),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            );
+          } else if (snapshot.hasError) {
+            return Center(child: Text("Error"));
+          }
+          return Center(child: CircularProgressIndicator());
         },
       ),
     );
   }
 }
 
-// HALAMAN PHOTOS
-class PhotosPage extends StatefulWidget {
-  const PhotosPage({super.key});
-
+class GalleryPage extends StatefulWidget {
   @override
-  State<PhotosPage> createState() => _PhotosPageState();
+  State<GalleryPage> createState() => _GalleryPageState();
 }
 
-class _PhotosPageState extends State<PhotosPage> {
+class _GalleryPageState extends State<GalleryPage> {
   late Future<List<PhotoModel>> futurePhotos;
 
   @override
@@ -190,84 +172,61 @@ class _PhotosPageState extends State<PhotosPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          "Galeri Foto", 
-          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)
-        ),
-        backgroundColor: const Color.fromARGB(255, 83, 206, 12),
-        elevation: 0,
-        centerTitle: true,
+        title: Text("Daftar Foto"),
+        backgroundColor: Colors.cyanAccent,
       ),
       body: FutureBuilder<List<PhotoModel>>(
         future: futurePhotos,
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('Tidak ada data'));
-          }
+          if (snapshot.hasData) {
+            final photos = snapshot.data!;
 
-          final photos = snapshot.data!;
-          return GridView.builder(
-            padding: const EdgeInsets.all(12),
-            itemCount: photos.length,
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-              childAspectRatio: 0.85,
-            ),
-            itemBuilder: (context, index) {
-              final photo = photos[index];
-              return Card(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(15.0),
-                ),
-                elevation: 4,
-                shadowColor: Colors.black.withValues(alpha: 0.2),
-                clipBehavior: Clip.antiAlias,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Expanded(
-                      child: Image.network(
-                        photo.downloadUrl,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return const Center(
-                            child: Icon(Icons.broken_image, size: 50, color: Colors.grey),
-                          );
-                        },
-                        loadingBuilder: (context, child, loadingProgress) {
-                          if (loadingProgress == null) return child;
-                          return const Center(
-                            child: CircularProgressIndicator(),
-                          );
-                        },
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.all(10.0),
-                      color: Colors.white,
-                      child: Text(
-                        photo.author,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                          color: Colors.black87,
+            return ListView.builder(
+              padding: EdgeInsets.all(12),
+              itemCount: photos.length,
+              itemBuilder: (context, index) {
+                final photo = photos[index];
+
+                return Card(
+                  margin: EdgeInsets.only(bottom: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: EdgeInsets.all(10),
+                        child: Text(
+                          photo.author,
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        textAlign: TextAlign.center,
                       ),
-                    ),
-                  ],
-                ),
-              );
-            },
-          );
+
+                      AspectRatio(
+                        aspectRatio: photo.width / photo.height,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.vertical(
+                            bottom: Radius.circular(12),
+                          ),
+                          child: Image.network(
+                            photo.downloadUrl,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            );
+          } else if (snapshot.hasError) {
+            return Center(child: Text("Error"));
+          } else {
+            return Center(child: CircularProgressIndicator());
+          }
         },
       ),
     );
